@@ -77,7 +77,7 @@ clear IndexInterval
 LenInter = length(IndexIMU);
 
 
-AnomalyAll=zeros(LenInter, 3);
+AnomalyAll      = zeros(LenInter, 3);
 AnomalyAll_x    = zeros(LenInter,4);
 
 AnomalyLow=zeros(LenInter, 3);

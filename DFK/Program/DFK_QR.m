@@ -4,7 +4,17 @@ clear
 timetime = clock;
 
 D=importdata('../../Data/Output_data/anomaly_data.txt');
-true_anomaly=D.data;
+true_anomaly_all=D.data;
+clear D
+
+D=importdata('../../Data/Output_data/anomaly_low_data.txt');
+true_anomaly_low=D.data;
+clear D
+
+true_anomaly_res = [true_anomaly_low(:, 1), true_anomaly_all(:, 2:end) - true_anomaly_low(:, 2:end)];
+
+D=importdata('../../Data/Output_data/anomaly_sat_data.txt');
+true_anomaly_sat=D.data;
 clear D
 
 % --------------download data----------------------------------------------
@@ -79,7 +89,7 @@ disp('начало работы алгоритма')
 
 for i = 1:TimeEnd
 %    --------------initialization-------------------------------------------
-    g_0         = Make_Cross_Matrix(g0_array(i, :));
+    g           = Make_Cross_Matrix(g0_array(i, :) - true_anomaly_sat(10*i, 2:end));
     Vx          = Make_Cross_Matrix(Vx_array(i, :));
     Z_t         = dVx_array(i, :)';
     omega_x     = Make_Cross_Matrix(omega_x_array(i, :));
@@ -90,7 +100,7 @@ for i = 1:TimeEnd
                    L_zx_array(i,7), L_zx_array(i,8), L_zx_array(i,9)];
     
 %     ---------------------------------------------------------------------
-    A           = [omega_pl_u, g_0, L_zx' , Vx * L_zx', -eye(3), zeros(3);
+    A           = [omega_pl_u, g, L_zx' , Vx * L_zx', -eye(3), zeros(3);
                    zeros(3), omega_x, zeros(3), L_zx', zeros(3, 6);
                    zeros(6, 18);
                    zeros(3, 15), eye(3);
@@ -107,12 +117,8 @@ for i = 1:TimeEnd
     [Y_pred,P_pred,Tmp1,Tmp2,Resid] = KF_forward( ...
         F_t,J_t,Q_sqrt,Z_t,H_t,R_sqrt,R_sqrt_inv,Y_last,P_last);
     Y_last = Y_pred; 
-    P_last = P_pred;  
-    
-    % Copy into arrays
-    Y_forw(i+1,:) = Y_pred';% 1 x Nx
-    P_forw{i+1}   = P_pred;
-
+    P_last = P_pred;     
+ 
     X_j(:, i) = P_pred * Y_pred;
 
 
@@ -156,19 +162,27 @@ time_end = TimeEnd/10;
 figure(5)
 hold
 plot(time(1:time_end*10), 10^5*X_j(15, :))
-plot(true_anomaly(1*10:10:time_end*100,1),10^5*true_anomaly(1:10:time_end*100,4));
+plot(true_anomaly_res(1*10:10:time_end*100,1),10^5*true_anomaly_res(1:10:time_end*100,4));
 legend('comp', 'true')
 
-figure(6)
+figure(1)
 hold
-plot(time(1:time_end*10), 10^5*X_j(13, :))
-plot(true_anomaly(1:10:time_end*100,1), 10^5*true_anomaly(1:10:time_end*100,2));
-legend('comp', 'true')
+plot(time(1:time_end*10), 10^5*X_j(15, :))
+plot(true_anomaly_res(:, 1),10^5*true_anomaly_res(:,4), LineWidth=1.5);
+plot(true_anomaly_low(:, 1),10^5*true_anomaly_low(:,4), LineWidth=1.5);
+plot(true_anomaly_sat(:, 1),10^5*true_anomaly_all(:,4), LineWidth=1.5);
+legend('est', 'res', 'low', 'all')
 
-figure(7)
-hold
-plot(time(1:time_end*10), 10^5*X_j(14, :))
-plot(true_anomaly(1:10:time_end*100,1), 10^5*true_anomaly(1:10:time_end*100,3));
-legend('comp', 'true')
+% figure(6)
+% hold
+% plot(time(1:time_end*10), 10^5*X_j(13, :))
+% plot(true_anomaly_res(1:10:time_end*100,1), 10^5*true_anomaly_res(1:10:time_end*100,2));
+% legend('comp', 'true')
+% 
+% figure(7)
+% hold
+% plot(time(1:time_end*10), 10^5*X_j(14, :))
+% plot(true_anomaly_res(1:10:time_end*100,1), 10^5*true_anomaly_res(1:10:time_end*100,3));
+% legend('comp', 'true')
 
 disp(['время работы программы: ', num2str(etime(clock, timetime)), ' секунд'])
