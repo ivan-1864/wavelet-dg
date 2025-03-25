@@ -40,22 +40,25 @@ time_step       = mean(diff(time));
 % -------------------------------------------------------------------------
 
 
-t_val           = time;
-t_min           = min(t_val);
-t_max           = max(t_val);
-TimeWave = t_val - t_min; 
 
 if TimeEnd == 0
     TimeEnd = Length;
 end
 
-% k_arr = [30, 60, 60];
-k_arr = [30, 60];
-j_min = -8;
-% j_min = -9;
-j_max = -7;
 
+t_val           = time(1:TimeEnd);
+t_min           = min(t_val);
+t_max           = max(t_val);
+TimeWave = t_val - t_min; 
+% 
+k_arr = [20, 20, 20];
+j_min = -9;
+j_max = -7;
+% k_arr = [10, 10, 10, 10];
+% j_min = -;
 % j_max = -6;
+
+
 len_psi = sum(k_arr)*3;
 
 % ----------creating matrix P, Q, R (for KF)-------------------------------
@@ -66,13 +69,12 @@ d_dg            = Std_dg * 10^(-5) * ones(1, 3);
 d_p             = Std_p * 10^(-5) * ones(1, 3);
 d_f             = [Std_f * 10^(-5) * ones(1, 2), 10^(-5)];
 d_nu            = deg2rad(Std_nu) / 3600 * ones(1, 3);
-d_w = 1000*10^(-5)*ones(1, len_psi);
+d_w             = 10000*10^(-5)*ones(1, len_psi);
 P_last_diag     = [d_dv, d_beta, d_f, d_nu, d_w]; % diagonal of sqrt of cov. matrix at time t=0
 P_last          = diag(P_last_diag);
 % -------------------------------------------------------------------------
 d_ax            = (10^(-5) * Std_AX) * ones(1, 3);
 d_dus           = (deg2rad(Std_DUS) / 3600) * ones(1, 3);
-% d_q             = (10^(-5) * Std_q) * ones(1, 3);
 Q_sqrt_diag     = [d_ax, d_dus];
 Q_sqrt          = diag(Q_sqrt_diag);
 % -------------------------------------------------------------------------
@@ -154,7 +156,7 @@ end
 
 % ---------------------record into the file--------------------------------
 
-time_end = 5250;
+% time_end = 5250;
 
 % % dv
 % figure(1)
